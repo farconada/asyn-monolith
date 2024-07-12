@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./storage:/storage
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: celery -A app.celery worker --loglevel=info
+    volumes:
+      - .:/app
+      - ./storage:/storage
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"

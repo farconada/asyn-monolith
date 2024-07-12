@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload and Process</title>
+</head>
+<body>
+    <h1>Upload a File</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file" name="file">
+        <button type="submit">Upload</button>
+    </form>
+    <div id="status"></div>
+    <script>
+        document.getElementById('upload-form').onsubmit = function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const fileInput = document.getElementById('file');
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const taskId = data.task_id;
+                checkStatus(taskId);
+            });
+        };
+
+        function checkStatus(taskId) {
+            fetch(`/status/${taskId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.state === 'PENDING') {
+                        document.getElementById('status').innerText = 'Processing...';
+                        setTimeout(() => checkStatus(taskId), 1000);
+                    } else if (data.state === 'SUCCESS') {
+                        document.getElementById('status').innerText = 'Processing completed! Result: ' + data.result;
+                    } else {
+                        document.getElementById('status').innerText = 'Error: ' + data.status;
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
